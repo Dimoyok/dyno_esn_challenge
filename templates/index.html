@@ -1,0 +1,73 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Flask-Sock Demo</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+      const socket_from = new WebSocket('ws://' + location.host + '/from_server');
+      const socket_to = new WebSocket('ws://' + location.host + '/to_server');
+
+      function draw_circle(ctx, x, y, r, color) {
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.arc(x, y, r, 0, 2 * Math.PI);
+        ctx.fill();
+        // ctx.stroke();
+      }
+
+      p = [0, 0];
+      socket_from.addEventListener('message', ev => {
+        var canvas = document.getElementById("canvas");
+        var ctx = canvas.getContext("2d");
+        // document.getElementById("log").innerHTML = ev.data;
+        // ctx.clearRect(0, 0, 360, 360);
+
+        ctx.fillStyle = "rgba(255, 255, 255, 0.01)";
+        ctx.fillRect(0, 0, 360, 360);
+
+        coords = ev.data.split(" ");
+        draw_circle(ctx, 68.56, 270.40, 8, "red");
+        draw_circle(ctx, 180+135*coords[0], 180+135*coords[1], 2, "blue");
+
+        if(p[0] != 0 && p[1] != 0)
+        {
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = "blue";
+          ctx.beginPath();       
+          ctx.moveTo(p[0], p[1]);   
+          ctx.lineTo(180+135*coords[0], 180+135*coords[1]);   
+          ctx.stroke();  
+        }
+        p = [180+135*coords[0], 180+135*coords[1]];
+      });
+
+      function updateControlValue() {
+        c_1 = parseFloat(document.getElementById('control_0').value);
+        c_2 = parseFloat(document.getElementById('control_1').value);
+
+        if(c_1 < 0) ih = "";
+        else ih = "&nbsp;";
+        document.getElementById('control_val_0').innerHTML=ih + c_1.toFixed(3); 
+
+        if(c_2 < 0) ih = "";
+        else ih = "&nbsp;";
+        document.getElementById('control_val_1').innerHTML=ih + c_2.toFixed(3);
+        socket_to.send(c_1 + " " + c_2);
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Try to reach the red point</h1>
+    <!-- <div id="log"></div> -->
+    <br>
+    <div>
+      <input type="range" min="-1" max="1" step="0.001" id="control_0" value=" 0.200" oninput="updateControlValue()">
+      <span id="control_val_0">&nbsp;0.200</span>
+    </div>
+    <div>
+      <input type="range" min="-1" max="1" step="0.001" id="control_1" value="-0.200" oninput="updateControlValue()">
+      <span id="control_val_1">-0.200</span>
+    </div>
+    <canvas id="canvas" width="360" height="360" style="border:1px solid #d3d3d3;">
+  </body>
+</html>
